@@ -1,0 +1,253 @@
+<!-- Sección de Clientes -->
+<section *ngIf="activeSection === 'Clientes'">
+  <h2 class="text-3xl font-bold text-gray-800 mb-6">Gestión de Clientes</h2>
+
+  <div
+    class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100"
+  >
+    <div
+      class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100"
+    >
+      <div class="flex items-center justify-between">
+        <h3 class="text-xl font-bold text-gray-800">Listado de Clientes</h3>
+        <button
+          class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:shadow-lg transition-all duration-200 font-semibold text-sm"
+        >
+          + Nuevo Cliente
+        </button>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th
+              class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider"
+            >
+              Cliente
+            </th>
+            <th
+              class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider"
+            >
+              Email
+            </th>
+            <th
+              class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider"
+            >
+              Sucursal
+            </th>
+            <th
+              class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider"
+            >
+              Acciones
+            </th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr
+            *ngFor="let cliente of clientes"
+            class="hover:bg-gray-50 transition-colors duration-150"
+          >
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="flex items-center">
+                <div
+                  class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center text-white font-bold mr-3"
+                >
+                  {{ cliente.name.charAt(0) }}
+                </div>
+                <div>
+                  <div class="text-sm font-bold text-gray-900">
+                    {{ cliente.name }}
+                  </div>
+                  <div class="text-xs text-gray-500">ID: {{ cliente.id }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <div class="text-sm text-gray-900">{{ cliente.email }}</div>
+            </td>
+            <td class="px-6 py-4">
+              <div class="text-sm text-gray-900">
+                {{ cliente.negocio?.nombre || 'Sin asignar' }}
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm">
+              <div class="flex items-center space-x-2">
+                <button
+                  class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-150"
+                  title="Editar"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"
+                    />
+                    <path d="m15 5 4 4" />
+                  </svg>
+                </button>
+                <button
+                  (click)="deleteCliente(cliente.id!)"
+                  class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-150"
+                  title="Eliminar"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M3 6h18" />
+                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Sección de Empleados -->
+<section *ngIf="activeSection === 'Empleados'">
+  <h2 class="text-3xl font-bold text-gray-800 mb-6">Gestión de Empleados</h2>
+
+  <div
+    class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100"
+  >
+    <div
+      class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100"
+    >
+      <div class="flex items-center justify-between">
+        <h3 class="text-xl font-bold text-gray-800">Listado de Empleados</h3>
+        <button
+          class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:shadow-lg transition-all duration-200 font-semibold text-sm"
+        >
+          + Nuevo Empleado
+        </button>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th
+              class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider"
+            >
+              Empleado
+            </th>
+            <th
+              class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider"
+            >
+              Email
+            </th>
+            <th
+              class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider"
+            >
+              Sucursal
+            </th>
+            <th
+              class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider"
+            >
+              Acciones
+            </th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr
+            *ngFor="let empleado of empleados"
+            class="hover:bg-gray-50 transition-colors duration-150"
+          >
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="flex items-center">
+                <div
+                  class="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl flex items-center justify-center text-white font-bold mr-3"
+                >
+                  {{ empleado.name.charAt(0) }}
+                </div>
+                <div>
+                  <div class="text-sm font-bold text-gray-900">
+                    {{ empleado.name }}
+                  </div>
+                  <div class="text-xs text-gray-500">ID: {{ empleado.id }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <div class="text-sm text-gray-900">{{ empleado.email }}</div>
+            </td>
+            <td class="px-6 py-4">
+              <div class="text-sm text-gray-900">
+                {{ empleado.negocio?.nombre || 'Sin asignar' }}
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm">
+              <div class="flex items-center space-x-2">
+                <button
+                  class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-150"
+                  title="Editar"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"
+                    />
+                    <path d="m15 5 4 4" />
+                  </svg>
+                </button>
+                <button
+                  (click)="deleteEmpleado(empleado.id!)"
+                  class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-150"
+                  title="Eliminar"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M3 6h18" />
+                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
