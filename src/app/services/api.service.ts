@@ -45,6 +45,7 @@ export class ApiService {
   constructor(private http: HttpClient) {
     // Cargar token del localStorage si existe
     this.token = localStorage.getItem('auth_token');
+    console.log('API URL:', this.apiUrl, 'Production:', environment.production);
   }
 
   // Headers con autenticación
