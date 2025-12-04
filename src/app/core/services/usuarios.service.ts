@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { User, Role } from '../models/api.models';
 
 @Injectable({
@@ -13,6 +14,12 @@ export class UsuariosService {
 
   getUsuarios(): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/usuarios`);
+  }
+
+  getUsuariosByRole(roleId: number): Observable<User[]> {
+    return this.getUsuarios().pipe(
+      map((users) => users.filter((u) => u.role_id === roleId))
+    );
   }
 
   getUsuario(id: number): Observable<User> {

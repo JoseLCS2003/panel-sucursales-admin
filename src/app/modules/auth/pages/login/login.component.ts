@@ -17,7 +17,7 @@ export class LoginComponent {
 
   constructor(private authService: AuthService, private router: Router) {
     if (this.authService.isAuthenticated()) {
-      this.router.navigate(['/dashboard']);
+      this.router.navigate(['/usuarios/clientes']);
     }
   }
 
@@ -78,7 +78,27 @@ export class LoginComponent {
 
   private handleLoginSuccess(response: any): void {
     this.authService.setToken(response.token);
-    this.loading = false;
-    this.router.navigate(['/dashboard']);
+
+    // Verificar que el usuario sea un agente (role_id = 2)
+    this.authService.getMe().subscribe({
+      next: (user) => {
+        if (user.role_id === 2) {
+          // Usuario es agente, permitir acceso
+          this.loading = false;
+          this.router.navigate(['/usuarios/clientes']);
+        } else {
+          // Usuario no es agente, denegar acceso
+          this.authService.clearToken();
+          this.loginError = 'Acceso denegado. Este panel es solo para agentes.';
+          this.loading = false;
+        }
+      },
+      error: (error) => {
+        console.error('Error al obtener información del usuario:', error);
+        this.authService.clearToken();
+        this.loginError = 'Error al verificar permisos de usuario.';
+        this.loading = false;
+      },
+    });
   }
 }

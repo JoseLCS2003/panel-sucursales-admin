@@ -13,7 +13,7 @@
         *ngIf="isSidebarOpen"
         class="text-2xl font-bold tracking-wider bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent"
       >
-        Admin Panel
+        Panel de Agentes
       </span>
       <svg
         *ngIf="!isSidebarOpen"
@@ -183,9 +183,10 @@
       <!-- Perfil de usuario / Notificaciones -->
       <div class="flex items-center space-x-3">
         <div
-          class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg"
+          class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+          [title]="currentUser?.name || 'Usuario'"
         >
-          AD
+          {{ userInitials }}
         </div>
       </div>
     </header>

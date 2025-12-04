@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { User } from '../../core/models/api.models';
 
 interface NavItem {
   id: string;
@@ -14,18 +15,13 @@ interface NavItem {
   templateUrl: './main-layout.component.html',
   styleUrls: ['./main-layout.component.css'],
 })
-export class MainLayoutComponent {
+export class MainLayoutComponent implements OnInit {
   isSidebarOpen = true;
   isMobile = window.innerWidth < 768;
-  activeSection = 'Panel Sucursales';
+  activeSection = 'Clientes';
+  currentUser: User | null = null;
 
   navItems: NavItem[] = [
-    {
-      id: 'Panel Sucursales',
-      name: 'Panel Sucursales',
-      icon: 'home',
-      route: '/dashboard',
-    },
     {
       id: 'Clientes',
       name: 'Clientes',
@@ -47,6 +43,37 @@ export class MainLayoutComponent {
         this.isSidebarOpen = true;
       }
     });
+  }
+
+  ngOnInit(): void {
+    this.loadCurrentUser();
+  }
+
+  loadCurrentUser(): void {
+    this.authService.getMe().subscribe({
+      next: (user) => {
+        this.currentUser = user;
+      },
+      error: (error) => {
+        console.error('Error al cargar usuario:', error);
+      },
+    });
+  }
+
+  get userInitials(): string {
+    if (!this.currentUser || !this.currentUser.name) {
+      return 'AD';
+    }
+
+    const names = this.currentUser.name.trim().split(' ');
+
+    if (names.length === 1) {
+      // Si solo hay un nombre, tomar las primeras 2 letras
+      return names[0].substring(0, 2).toUpperCase();
+    } else {
+      // Si hay más de un nombre, tomar la primera letra de cada uno (máximo 2)
+      return (names[0][0] + names[names.length - 1][0]).toUpperCase();
+    }
   }
 
   get activeSectionTitle(): string {

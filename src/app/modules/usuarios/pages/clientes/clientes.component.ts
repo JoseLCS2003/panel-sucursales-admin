@@ -36,9 +36,9 @@ export class ClientesComponent implements OnInit {
 
   loadClientes(): void {
     this.loading = true;
-    this.usuariosService.getUsuarios().subscribe({
+    this.usuariosService.getUsuariosByRole(3).subscribe({
       next: (data) => {
-        this.clientes = data.filter((u) => u.role_id === 3);
+        this.clientes = data; // Ya viene filtrado del backend
         this.loading = false;
       },
       error: (error) => {

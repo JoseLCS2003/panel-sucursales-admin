@@ -15,13 +15,6 @@ const routes: Routes = [
     canActivate: [AuthGuard],
     children: [
       {
-        path: 'dashboard',
-        loadChildren: () =>
-          import('./modules/dashboard/dashboard.module').then(
-            (m) => m.DashboardModule
-          ),
-      },
-      {
         path: 'usuarios',
         loadChildren: () =>
           import('./modules/usuarios/usuarios.module').then(
@@ -30,12 +23,12 @@ const routes: Routes = [
       },
       {
         path: '',
-        redirectTo: 'dashboard',
+        redirectTo: 'usuarios/clientes',
         pathMatch: 'full',
       },
     ],
   },
-  { path: '**', redirectTo: 'dashboard' },
+  { path: '**', redirectTo: 'usuarios/clientes' },
 ];
 
 @NgModule({

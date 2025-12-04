@@ -23,7 +23,7 @@ export class EmpleadosComponent implements OnInit {
     name: '',
     email: '',
     password: '',
-    role_id: 2,
+    role_id: 4,
     sucursal_id: undefined,
   };
 
@@ -41,9 +41,9 @@ export class EmpleadosComponent implements OnInit {
 
   loadEmpleados(): void {
     this.loading = true;
-    this.usuariosService.getUsuarios().subscribe({
+    this.usuariosService.getUsuariosByRole(4).subscribe({
       next: (data) => {
-        this.empleados = data.filter((u) => u.role_id === 2);
+        this.empleados = data; // Ya viene filtrado del servicio
         this.loading = false;
       },
       error: (error) => {
@@ -71,7 +71,7 @@ export class EmpleadosComponent implements OnInit {
       name: '',
       email: '',
       password: '',
-      role_id: 2,
+      role_id: 4,
       sucursal_id: undefined,
     };
     this.showModal = true;
