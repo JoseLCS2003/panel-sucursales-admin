@@ -1,3 +1,4 @@
 export const environment = {
-  production: true
+  production: true,
+  apiUrl: 'https://gturnos.tech/api', // Cambia esto a tu URL de producción
 };
