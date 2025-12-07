@@ -144,81 +144,134 @@
     <div
       class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
     >
-      <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-        <div class="sm:flex sm:items-start">
-          <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-            <h3
-              class="text-lg leading-6 font-medium text-gray-900"
-              id="modal-title"
-            >
-              {{ isEditing ? "Editar" : "Crear" }} Empleado
-            </h3>
-            <div class="mt-4 space-y-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700"
-                  >Nombre</label
-                >
-                <input
-                  type="text"
-                  [(ngModel)]="currentUsuario.name"
-                  class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700"
-                  >Email</label
-                >
-                <input
-                  type="email"
-                  [(ngModel)]="currentUsuario.email"
-                  class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                />
-              </div>
-              <div *ngIf="!isEditing">
-                <label class="block text-sm font-medium text-gray-700"
-                  >Contraseña</label
-                >
-                <input
-                  type="password"
-                  [(ngModel)]="currentUsuario.password"
-                  class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700"
-                  >Asignar Sucursal</label
-                >
-                <select
-                  [(ngModel)]="currentUsuario.sucursal_id"
-                  class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                >
-                  <option [ngValue]="null">Sin asignar</option>
-                  <option *ngFor="let s of sucursales" [value]="s.id">
-                    {{ s.nombre }}
-                  </option>
-                </select>
+      <form [formGroup]="empleadoForm" (ngSubmit)="saveEmpleado()">
+        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+          <div class="sm:flex sm:items-start">
+            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+              <h3
+                class="text-lg leading-6 font-medium text-gray-900"
+                id="modal-title"
+              >
+                {{ isEditing ? "Editar" : "Crear" }} Empleado
+              </h3>
+              <div class="mt-4 space-y-4">
+                <!-- Campo Nombre -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700"
+                    >Nombre Completo <span class="text-red-500">*</span></label
+                  >
+                  <input
+                    type="text"
+                    formControlName="name"
+                    placeholder="Ej: María González"
+                    [class.border-red-500]="hasError('name')"
+                    [class.border-gray-300]="!hasError('name')"
+                    class="mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                  <p *ngIf="hasError('name')" class="mt-1 text-sm text-red-600">
+                    {{ getErrorMessage("name") }}
+                  </p>
+                </div>
+
+                <!-- Campo Email -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700"
+                    >Email <span class="text-red-500">*</span></label
+                  >
+                  <input
+                    type="email"
+                    formControlName="email"
+                    placeholder="ejemplo@correo.com"
+                    [class.border-red-500]="hasError('email')"
+                    [class.border-gray-300]="!hasError('email')"
+                    class="mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                  <p
+                    *ngIf="hasError('email')"
+                    class="mt-1 text-sm text-red-600"
+                  >
+                    {{ getErrorMessage("email") }}
+                  </p>
+                </div>
+
+                <!-- Campo Contraseña -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700"
+                    >Contraseña
+                    <span *ngIf="!isEditing" class="text-red-500">*</span>
+                    <span *ngIf="isEditing" class="text-gray-500 text-xs"
+                      >(dejar en blanco para mantener la actual)</span
+                    ></label
+                  >
+                  <input
+                    type="password"
+                    formControlName="password"
+                    placeholder="Mínimo 8 caracteres"
+                    [class.border-red-500]="hasError('password')"
+                    [class.border-gray-300]="!hasError('password')"
+                    class="mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                  <p
+                    *ngIf="hasError('password')"
+                    class="mt-1 text-sm text-red-600"
+                  >
+                    {{ getErrorMessage("password") }}
+                  </p>
+                  <p
+                    *ngIf="!hasError('password')"
+                    class="mt-1 text-xs text-gray-500"
+                  >
+                    La contraseña debe tener al menos 8 caracteres
+                  </p>
+                </div>
+
+                <!-- Campo Sucursal -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700"
+                    >Sucursal <span class="text-red-500">*</span></label
+                  >
+                  <select
+                    formControlName="sucursal_id"
+                    [class.border-red-500]="hasError('sucursal_id')"
+                    [class.border-gray-300]="!hasError('sucursal_id')"
+                    class="mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  >
+                    <option [ngValue]="null" disabled>
+                      Seleccione una sucursal
+                    </option>
+                    <option *ngFor="let s of sucursales" [value]="s.id">
+                      {{ s.nombre }}
+                    </option>
+                  </select>
+                  <p
+                    *ngIf="hasError('sucursal_id')"
+                    class="mt-1 text-sm text-red-600"
+                  >
+                    {{ getErrorMessage("sucursal_id") }}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-        <button
-          type="button"
-          [disabled]="loading"
-          (click)="saveEmpleado()"
-          class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
-        >
-          {{ loading ? "Guardando..." : "Guardar" }}
-        </button>
-        <button
-          type="button"
-          (click)="closeModal()"
-          class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-        >
-          Cancelar
-        </button>
-      </div>
+        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+          <button
+            type="submit"
+            [disabled]="loading"
+            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {{ loading ? "Guardando..." : "Guardar" }}
+          </button>
+          <button
+            type="button"
+            (click)="closeModal()"
+            [disabled]="loading"
+            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+          >
+            Cancelar
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </div>

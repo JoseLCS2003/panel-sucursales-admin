@@ -1,32 +1,84 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
+import { CustomValidators } from '../../../../core/validators/custom-validators';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
 })
-export class LoginComponent {
-  username = '';
-  password = '';
+export class LoginComponent implements OnInit {
+  loginForm!: FormGroup;
+  twoFactorForm!: FormGroup;
   loginError = '';
   loading = false;
   requires2FA = false;
-  twoFactorCode = '';
 
-  constructor(private authService: AuthService, private router: Router) {
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private router: Router
+  ) {
     if (this.authService.isAuthenticated()) {
       this.router.navigate(['/usuarios/clientes']);
     }
   }
 
+  ngOnInit(): void {
+    this.initForms();
+  }
+
+  private initForms(): void {
+    this.loginForm = this.fb.group({
+      email: [
+        '',
+        [
+          Validators.required,
+          CustomValidators.email,
+          Validators.maxLength(100),
+        ],
+      ],
+      password: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(6),
+          Validators.maxLength(50),
+        ],
+      ],
+    });
+
+    this.twoFactorForm = this.fb.group({
+      code: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(6),
+          Validators.maxLength(6),
+          Validators.pattern(/^[0-9]{6}$/),
+        ],
+      ],
+    });
+  }
+
   login(event: Event): void {
     event.preventDefault();
     this.loginError = '';
-    this.loading = true;
 
-    this.authService.login(this.username, this.password).subscribe({
+    // Marcar todos los campos como tocados para mostrar errores
+    this.loginForm.markAllAsTouched();
+
+    if (this.loginForm.invalid) {
+      this.loginError = 'Por favor, complete todos los campos correctamente.';
+      return;
+    }
+
+    this.loading = true;
+    const { email, password } = this.loginForm.value;
+
+    this.authService.login(email, password).subscribe({
       next: (response) => {
         if (response.requires_2fa) {
           this.requires2FA = true;
@@ -39,7 +91,7 @@ export class LoginComponent {
         console.error('Error de login:', error);
         this.loginError =
           'Credenciales inválidas. Por favor, inténtalo de nuevo.';
-        this.password = '';
+        this.loginForm.patchValue({ password: '' });
         this.loading = false;
       },
     });
@@ -47,9 +99,20 @@ export class LoginComponent {
 
   verify2FA(): void {
     this.loginError = '';
-    this.loading = true;
 
-    this.authService.verify2FA(this.username, this.twoFactorCode).subscribe({
+    // Marcar todos los campos como tocados
+    this.twoFactorForm.markAllAsTouched();
+
+    if (this.twoFactorForm.invalid) {
+      this.loginError = 'El código debe tener 6 dígitos numéricos.';
+      return;
+    }
+
+    this.loading = true;
+    const email = this.loginForm.get('email')?.value;
+    const code = this.twoFactorForm.get('code')?.value;
+
+    this.authService.verify2FA(email, code).subscribe({
       next: (response) => {
         this.handleLoginSuccess(response);
       },
@@ -63,7 +126,9 @@ export class LoginComponent {
 
   resend2FA(): void {
     this.loading = true;
-    this.authService.resend2FA(this.username).subscribe({
+    const email = this.loginForm.get('email')?.value;
+
+    this.authService.resend2FA(email).subscribe({
       next: () => {
         alert('Código reenviado a tu correo electrónico.');
         this.loading = false;
@@ -100,5 +165,48 @@ export class LoginComponent {
         this.loading = false;
       },
     });
+  }
+
+  /**
+   * Obtiene el mensaje de error para un campo específico
+   */
+  getErrorMessage(formGroup: FormGroup, fieldName: string): string {
+    const control = formGroup.get(fieldName);
+
+    if (!control || !control.errors || !control.touched) {
+      return '';
+    }
+
+    if (control.errors['required']) {
+      return 'Este campo es obligatorio';
+    }
+
+    if (control.errors['invalidEmail']) {
+      return 'El formato del email no es válido';
+    }
+
+    if (control.errors['minlength']) {
+      const minLength = control.errors['minlength'].requiredLength;
+      return `Debe tener al menos ${minLength} caracteres`;
+    }
+
+    if (control.errors['maxlength']) {
+      const maxLength = control.errors['maxlength'].requiredLength;
+      return `No puede exceder ${maxLength} caracteres`;
+    }
+
+    if (control.errors['pattern']) {
+      return 'Debe contener solo números';
+    }
+
+    return 'Campo inválido';
+  }
+
+  /**
+   * Verifica si un campo tiene errores y ha sido tocado
+   */
+  hasError(formGroup: FormGroup, fieldName: string): boolean {
+    const control = formGroup.get(fieldName);
+    return !!(control && control.invalid && control.touched);
   }
 }

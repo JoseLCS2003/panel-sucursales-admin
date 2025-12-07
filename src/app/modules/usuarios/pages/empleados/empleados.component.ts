@@ -1,9 +1,11 @@
 import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { UsuariosService } from '../../../../core/services/usuarios.service';
 import { SucursalesService } from '../../../../core/services/sucursales.service';
 import { User, Negocio } from '../../../../core/models/api.models';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { ConfirmationService } from '../../../../core/services/confirmation.service';
+import { CustomValidators } from '../../../../core/validators/custom-validators';
 
 @Component({
   selector: 'app-empleados',
@@ -19,36 +21,85 @@ export class EmpleadosComponent implements OnInit {
   // Modal
   showModal = false;
   isEditing = false;
-  currentUsuario: Partial<User> = {
-    name: '',
-    email: '',
-    password: '',
-    role_id: 4,
-    sucursal_id: undefined,
-  };
+  empleadoForm!: FormGroup;
+  currentEmpleadoId?: number;
 
   constructor(
+    private fb: FormBuilder,
     private usuariosService: UsuariosService,
     private sucursalesService: SucursalesService,
     private notificationService: NotificationService,
     private confirmationService: ConfirmationService
-  ) {}
+  ) {
+    this.initForm();
+  }
 
   ngOnInit(): void {
     this.loadEmpleados();
     this.loadSucursales();
   }
 
+  /**
+   * Inicializa el formulario reactivo con validaciones
+   */
+  private initForm(): void {
+    this.empleadoForm = this.fb.group({
+      name: [
+        '',
+        [
+          Validators.required,
+          CustomValidators.noWhitespace,
+          CustomValidators.fullName,
+          Validators.minLength(3),
+          Validators.maxLength(100),
+        ],
+      ],
+      email: [
+        '',
+        [
+          Validators.required,
+          CustomValidators.email,
+          Validators.maxLength(100),
+        ],
+      ],
+      password: [''],
+      sucursal_id: [null, [Validators.required]],
+    });
+  }
+
+  /**
+   * Configura las validaciones de contraseña según el modo (crear/editar)
+   */
+  private setPasswordValidators(isRequired: boolean): void {
+    const passwordControl = this.empleadoForm.get('password');
+
+    if (isRequired) {
+      passwordControl?.setValidators([
+        Validators.required,
+        Validators.minLength(8),
+        Validators.maxLength(50),
+      ]);
+    } else {
+      passwordControl?.setValidators([
+        Validators.minLength(8),
+        Validators.maxLength(50),
+      ]);
+    }
+
+    passwordControl?.updateValueAndValidity();
+  }
+
   loadEmpleados(): void {
     this.loading = true;
     this.usuariosService.getUsuariosByRole(4).subscribe({
       next: (data) => {
-        this.empleados = data; // Ya viene filtrado del servicio
+        this.empleados = data;
         this.loading = false;
       },
       error: (error) => {
         console.error('Error al cargar empleados:', error);
         this.error = 'Error al cargar los empleados';
+        this.notificationService.error('Error al cargar los empleados');
         this.loading = false;
       },
     });
@@ -61,55 +112,69 @@ export class EmpleadosComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al cargar sucursales:', error);
+        this.notificationService.error('Error al cargar las sucursales');
       },
     });
   }
 
-  openCreateEmpleadoModal() {
+  openCreateEmpleadoModal(): void {
     this.isEditing = false;
-    this.currentUsuario = {
-      name: '',
-      email: '',
-      password: '',
-      role_id: 4,
-      sucursal_id: undefined,
-    };
+    this.currentEmpleadoId = undefined;
+    this.empleadoForm.reset();
+    this.setPasswordValidators(true); // Contraseña obligatoria al crear
     this.showModal = true;
   }
 
-  openEditEmpleadoModal(empleado: User) {
+  openEditEmpleadoModal(empleado: User): void {
     this.isEditing = true;
-    this.currentUsuario = { ...empleado, password: '' };
+    this.currentEmpleadoId = empleado.id;
+
+    this.empleadoForm.patchValue({
+      name: empleado.name,
+      email: empleado.email,
+      password: '',
+      sucursal_id: empleado.sucursal_id,
+    });
+
+    this.setPasswordValidators(false); // Contraseña opcional al editar
     this.showModal = true;
   }
 
-  closeModal() {
+  closeModal(): void {
     this.showModal = false;
+    this.empleadoForm.reset();
   }
 
-  saveEmpleado() {
-    this.loading = true;
+  saveEmpleado(): void {
+    // Marcar todos los campos como tocados para mostrar errores
+    this.empleadoForm.markAllAsTouched();
 
-    if (!this.currentUsuario.name || !this.currentUsuario.email) {
-      this.notificationService.warning('Nombre y Email son obligatorios');
-      this.loading = false;
-      return;
-    }
-
-    if (!this.isEditing && !this.currentUsuario.password) {
+    if (this.empleadoForm.invalid) {
       this.notificationService.warning(
-        'La contraseña es obligatoria para nuevos usuarios'
+        'Por favor, corrija los errores en el formulario'
       );
-      this.loading = false;
       return;
     }
 
-    if (this.isEditing && this.currentUsuario.id) {
-      const dataToSend = { ...this.currentUsuario };
-      if (!dataToSend.password) delete dataToSend.password;
+    this.loading = true;
+    const formData = this.empleadoForm.value;
 
+    // Preparar datos para enviar
+    const usuarioData: any = {
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      role_id: 4,
+      sucursal_id: formData.sucursal_id,
+    };
+
+    // Solo incluir contraseña si se proporcionó
+    if (formData.password && formData.password.trim()) {
+      usuarioData.password = formData.password;
+    }
+
+    if (this.isEditing && this.currentEmpleadoId) {
       this.usuariosService
-        .updateUsuario(this.currentUsuario.id, dataToSend)
+        .updateUsuario(this.currentEmpleadoId, usuarioData)
         .subscribe({
           next: () => {
             this.loadEmpleados();
@@ -121,24 +186,26 @@ export class EmpleadosComponent implements OnInit {
           error: (err) => {
             console.error(err);
             this.loading = false;
-            this.notificationService.error('Error al actualizar empleado');
+            this.notificationService.error(
+              err.error?.message || 'Error al actualizar empleado'
+            );
           },
         });
     } else {
-      this.usuariosService
-        .createUsuario(this.currentUsuario as User)
-        .subscribe({
-          next: () => {
-            this.loadEmpleados();
-            this.closeModal();
-            this.notificationService.success('Empleado creado correctamente');
-          },
-          error: (err) => {
-            console.error(err);
-            this.loading = false;
-            this.notificationService.error('Error al crear empleado');
-          },
-        });
+      this.usuariosService.createUsuario(usuarioData as User).subscribe({
+        next: () => {
+          this.loadEmpleados();
+          this.closeModal();
+          this.notificationService.success('Empleado creado correctamente');
+        },
+        error: (err) => {
+          console.error(err);
+          this.loading = false;
+          this.notificationService.error(
+            err.error?.message || 'Error al crear empleado'
+          );
+        },
+      });
     }
   }
 
@@ -158,5 +225,55 @@ export class EmpleadosComponent implements OnInit {
         },
       });
     }
+  }
+
+  /**
+   * Obtiene el mensaje de error para un campo específico
+   */
+  getErrorMessage(fieldName: string): string {
+    const control = this.empleadoForm.get(fieldName);
+
+    if (!control || !control.errors || !control.touched) {
+      return '';
+    }
+
+    if (control.errors['required']) {
+      if (fieldName === 'sucursal_id') {
+        return 'Debe seleccionar una sucursal';
+      }
+      return 'Este campo es obligatorio';
+    }
+
+    if (control.errors['invalidEmail']) {
+      return 'El formato del email no es válido';
+    }
+
+    if (control.errors['minlength']) {
+      const minLength = control.errors['minlength'].requiredLength;
+      return `Debe tener al menos ${minLength} caracteres`;
+    }
+
+    if (control.errors['maxlength']) {
+      const maxLength = control.errors['maxlength'].requiredLength;
+      return `No puede exceder ${maxLength} caracteres`;
+    }
+
+    if (control.errors['whitespace']) {
+      return 'No puede contener solo espacios en blanco';
+    }
+
+    if (control.errors['fullName']) {
+      return 'Debe ingresar nombre y apellido';
+    }
+
+    return 'Campo inválido';
+  }
+
+  /**
+   * Verifica si un campo tiene errores y ha sido tocado
+   */
+  hasError(fieldName: string): boolean {
+    const control = this.empleadoForm.get(fieldName);
+    return !!(control && control.invalid && control.touched);
   }
 }

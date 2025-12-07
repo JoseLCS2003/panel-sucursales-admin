@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 // Interfaces
@@ -180,5 +181,27 @@ export class ApiService {
     const headers = this.getHeaders();
     // Asumiendo que existe este endpoint, si no, lo crearemos
     return this.http.get<Role[]>(`${this.apiUrl}/roles`, { headers });
+  }
+
+  // ==================== VALIDACIONES ====================
+
+  /**
+   * Verifica si un email ya existe en el sistema
+   * @param email Email a verificar
+   * @param excludeId ID del usuario a excluir (para edición)
+   * @returns Observable<boolean> true si existe, false si no
+   */
+  checkEmailExists(email: string, excludeId?: number): Observable<boolean> {
+    const headers = this.getHeaders();
+    const params: any = { email };
+    if (excludeId) {
+      params.exclude_id = excludeId;
+    }
+    return this.http
+      .get<{ exists: boolean }>(`${this.apiUrl}/usuarios/check-email`, {
+        headers,
+        params,
+      })
+      .pipe(map((response) => response.exists));
   }
 }
